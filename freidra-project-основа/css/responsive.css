@@ -1,0 +1,42 @@
+/* Планшет */
+@media (max-width: 1000px) {
+  .main-menu-interface { width: 92vw; }
+  .gallery-masonry { column-count: 2; }
+}
+
+/* Телефон — 14. ТЗ: не просто уменьшение, отдельная компоновка */
+@media (max-width: 760px) {
+
+  .reader-layout { flex-direction: column; }
+  .reader-sidebar{ width:100%; }
+  .chapter-nav { flex-direction: row; overflow-x: auto; padding-bottom:6px; }
+  .chapter-nav-item{ flex-shrink:0; white-space:nowrap; }
+  .paper-sheet { max-height: none; padding: 30px 22px; }
+  .page-arrow{ display:none; } /* на телефоне переключение свайпом, см. reader.js */
+
+  .view-header { padding: 16px 20px; }
+  .view-header h1{ font-size:16px; }
+  .view-body { padding: 18px 16px 36px; }
+
+  /* книга крупнее и строго вертикально, без наклона по мыши */
+  .book { width: 78vw; max-width: 300px; height: 62vh; max-height: 440px; }
+  .book-wrapper{ transform: none !important; }
+
+  .main-menu-interface {
+    flex-direction: column; width: 92vw; height: auto; max-height: 84vh; box-shadow:none;
+  }
+  .menu-page{ padding: 30px 26px; }
+  .page-left{ border-radius: 12px 12px 0 0; border-right:none; border-bottom:1px solid rgba(0,0,0,0.2); }
+  .page-right{ border-radius: 0 0 12px 12px; border-left:none; }
+
+  .gallery-masonry { column-count: 1; }
+  .char-grid{ grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap:14px; }
+  .fullscreen-profile{ padding: 50px 6vw; }
+  .profile-header{ flex-direction:column; text-align:center; }
+
+  .map-frame{ height: calc(100vh - 200px); }
+
+  .toc-item{ padding:14px 18px; font-size:14px; }
+
+  .settings-row{ font-size:13px; }
+}

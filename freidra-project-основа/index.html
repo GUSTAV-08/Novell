@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Хроники Фрейдра</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;600;700;800&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;600;700;800&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Comfortaa:wght@400;700&family=Merriweather:wght@700;900&family=MedievalSharp&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ================= LANDING SCENE ================= -->
+  <div class="scene" id="scene">
+
+    <!-- ЕДИНСТВЕННЫЙ художественный фон сцены — реальный файл assets/images/mountains.png,
+         подключённый как <img>, а не нарисованный через CSS/Canvas. Всё остальное —
+         прозрачные слои поверх него: туман, свет, аврора, частицы. -->
+    <img class="layer-mountains-img" id="layer-mountains-img" src="assets/images/mountains.png" alt=""
+         onerror="Freidra.reportMissingBackground()" onload="Freidra.reportBackgroundLoaded()">
+    <div class="layer mountains-scrim"></div>
+    <div class="missing-asset-banner" id="missing-bg-banner">
+      <strong>assets/images/mountains.png не найден.</strong><br>
+      Положи файл фона точно по этому пути — сцена подключит его автоматически, без правок кода.
+    </div>
+    <div class="layer aurora"></div>
+    <div class="layer far-haze"></div>
+    <div class="layer fog-layer back" id="fog-back"></div>
+    <div class="layer fog-layer front" id="fog-front"></div>
+    <div class="moon"></div>
+    <div class="moon-halo"></div>
+    <div class="moon-ray"></div>
+    <div class="horizon-light"></div>
+
+    <div class="dragon-container" id="dragon-container">
+      <svg class="dragon-svg" viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 60 C 30 20, 60 70, 90 35 C 110 12, 130 30, 150 20 C 165 14, 180 20, 198 8
+                 C 180 30, 165 34, 150 30 C 130 40, 110 24, 90 45 C 60 82, 30 34, 2 60 Z" fill="#000" opacity="0.55"/>
+      </svg>
+    </div>
+
+    <canvas id="snow-canvas" class="layer" data-effect="snow"></canvas>
+    <div class="layer ground-shadow"></div>
+
+    <!-- ================= КНИГА (переработана как древний фолиант) ================= -->
+    <div class="book-wrapper" id="book-wrapper">
+      <div class="book-glow"></div>
+      <div class="book" id="book" onclick="Freidra.book.open()">
+
+        <!-- страницы — видны, когда крышка приподнимается -->
+        <div class="book-pages" id="book-pages">
+          <div class="page-top-sheet"></div>
+          <div class="page-rune-glow" id="page-rune-glow"></div>
+        </div>
+
+        <!-- неровный, пожелтевший блок страниц сбоку и снизу -->
+        <div class="page-block right"></div>
+        <div class="page-block bottom"></div>
+
+        <!-- корешок — объём переплёта -->
+        <div class="book-spine"></div>
+
+        <!-- верхняя крышка: кожа, потёртости, металл, заклёпки, эмблема с рунами -->
+        <div class="book-cover" id="book-cover">
+          <div class="cover-leather"></div>
+          <div class="cover-wear"></div>
+          <div class="cover-scratches"></div>
+          <div class="cover-border"></div>
+          <div class="cover-corner tl"></div>
+          <div class="cover-corner tr"></div>
+          <div class="cover-corner bl"></div>
+          <div class="cover-corner br"></div>
+          <div class="cover-seam-glow"></div>
+
+          <div class="cover-elements">
+            <div class="emblem-wrapper" id="emblem-wrapper">
+              <svg viewBox="0 0 100 100" fill="none" stroke="#d4af37" stroke-width="2">
+                <circle cx="50" cy="50" r="45" stroke-dasharray="2 2" stroke-width="1" />
+                <circle cx="50" cy="50" r="38" stroke-width="0.7"/>
+                <line x1="50" y1="15" x2="50" y2="85" />
+                <line x1="15" y1="50" x2="85" y2="50" />
+                <line x1="25" y1="25" x2="75" y2="75" />
+                <line x1="25" y1="75" x2="75" y2="25" />
+                <path d="M50 15 L45 22 M50 15 L55 22 M50 25 L43 25 M50 25 L57 25" />
+                <path d="M50 85 L45 78 M50 85 L55 78 M50 75 L43 75 M50 75 L57 75" />
+                <path d="M15 50 L22 45 M15 50 L22 55" />
+                <path d="M85 50 L78 45 M85 50 L78 55" />
+                <circle cx="50" cy="50" r="5" fill="#d4af37" />
+              </svg>
+            </div>
+            <div class="title-group">
+              <h1 class="book-title">Хроники<br>Фрейдра</h1>
+              <div class="divider-gold">
+                <div class="divider-line"></div><span class="divider-node">ᛟ</span><div class="divider-line"></div>
+              </div>
+            </div>
+            <div class="book-author">Gustav</div>
+          </div>
+        </div>
+
+        <div class="book-dust" id="book-dust"></div>
+        <div class="book-click-glow" id="book-click-glow"></div>
+      </div>
+    </div>
+
+    <div class="main-menu-interface" id="main-menu">
+      <div class="menu-page-light"></div>
+      <div class="menu-spine-shadow"></div>
+      <div class="menu-page page-left">
+        <h2>Аннотация</h2>
+        <p class="novel-description">
+          Древние льды Фрейдра хранят тайны, погребённые до рождения первых богов. Когда тени прошлого пробуждаются, судьба королевства ложится на плечи тех, кто разучился верить в легенды.
+        </p>
+        <p class="novel-quote" id="menu-quote">«Пройдите по заснеженным тропам, полным опасностей, и откройте истину...»</p>
+        <div class="menu-copyright">© Gustav, 2026</div>
+      </div>
+      <div class="menu-page page-right">
+        <ul class="nav-menu-list">
+          <li class="nav-item" data-target="reader"><span>📖</span> Читать</li>
+          <li class="nav-item" data-target="world"><span>🌍</span> Мир</li>
+          <li class="nav-item" data-target="characters"><span>👤</span> Персонажи</li>
+          <li class="nav-item" data-target="gallery"><span>🎨</span> Галерея</li>
+          <li class="nav-item" data-target="encyclopedia"><span>📜</span> Энциклопедия</li>
+          <li class="nav-item" data-target="settings"><span>⚙</span> Настройки</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint" id="hint-text">Нажмите, чтобы открыть фолиант</div>
+  </div>
+
+  <!-- ================= READER: сначала оглавление, потом чтение ================= -->
+  <div class="view" id="view-reader">
+    <div class="view-header">
+      <h1 id="reader-header-title">Читальня</h1>
+      <div class="header-actions">
+        <span class="page-indicator" id="page-indicator"></span>
+        <button class="back-btn" id="reader-inner-back" style="display:none;">← К оглавлению</button>
+        <button class="back-btn" data-back>← В фолиант</button>
+      </div>
+    </div>
+    <div class="view-body">
+
+      <!-- состояние 1: только список глав -->
+      <div class="reader-toc" id="reader-toc">
+        <div class="toc-volume-title" id="toc-volume-title">Том I</div>
+        <div class="toc-list" id="toc-list"></div>
+      </div>
+
+      <!-- состояние 2: страница с текстом (появляется после выбора главы) -->
+      <div class="reader-layout" id="reader-layout" style="display:none;">
+        <div class="reader-sidebar">
+          <div class="reader-settings-panel">
+
+            <div class="settings-block">
+              <div class="settings-block-label">Размер текста</div>
+              <div class="reader-controls">
+                <button onclick="Freidra.reader.setFontSize(-2)" title="Меньше">A-</button>
+                <span class="font-size-value" id="font-size-value">18px</span>
+                <button onclick="Freidra.reader.setFontSize(2)" title="Больше">A+</button>
+              </div>
+            </div>
+
+            <div class="settings-block">
+              <div class="settings-block-label">Шрифт</div>
+              <div class="font-family-grid" id="font-family-grid">
+                <button class="font-choice" data-font="serif" style="font-family:'EB Garamond',serif;">Aa</button>
+                <button class="font-choice" data-font="sans" style="font-family:'Comfortaa',sans-serif;">Aa</button>
+                <button class="font-choice" data-font="bold" style="font-family:'Merriweather',serif;font-weight:700;">Aa</button>
+                <button class="font-choice" data-font="medieval" style="font-family:'MedievalSharp',cursive;">Aa</button>
+              </div>
+            </div>
+
+            <div class="settings-block">
+              <div class="settings-block-label">Межстрочный интервал</div>
+              <div class="line-height-grid" id="line-height-grid">
+                <button class="lh-choice" data-lh="compact">Плотно</button>
+                <button class="lh-choice" data-lh="normal">Обычно</button>
+                <button class="lh-choice" data-lh="relaxed">Просторно</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="paper-stage">
+          <button class="page-arrow prev" onclick="Freidra.reader.prevChapter()" aria-label="Предыдущая глава">‹</button>
+          <div class="paper-sheet" id="paper-sheet">
+            <h2 id="chapter-title"></h2>
+            <div id="chapter-text"></div>
+          </div>
+          <button class="page-arrow next" onclick="Freidra.reader.nextChapter()" aria-label="Следующая глава">›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ <!-- ================= WORLD MAP: Переключение одной кнопкой ================= -->
+<div class="view" id="view-world">
+  <div class="view-header">
+    <h1>Мир Фрейдра</h1>
+    
+    <!-- Всего одна кнопка управления и индикатор текущего слоя -->
+    <div class="map-controls">
+      <button class="map-next-btn" id="map-next-btn">Сменить слой карты →</button>
+      <span class="map-layer-name" id="map-layer-name">Политическая карта</span>
+    </div>
+
+    <button class="back-btn" data-back>← В фолиант</button>
+  </div>
+  
+  <div class="view-body">
+    <div class="map-wrap">
+      <div class="map-frame" id="map-frame">
+        <img id="azgaar-image" class="azgaar-frame" src="" alt="Карта мира Фрейдра" style="object-fit: contain;">
+                
+        <div class="map-missing" id="map-missing">
+          Карта не найдена.<br>
+          <span>Положи 7 PNG-карт в <code>assets/map/</code> с именами от <code>map-1.png</code> до <code>map-7.png</code>.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- ================= CHARACTERS ================= -->
+  <div class="view" id="view-characters">
+    <div class="view-header">
+      <h1>Персонажи</h1>
+      <button class="back-btn" data-back>← В фолиант</button>
+    </div>
+    <div class="view-body">
+      <div class="char-grid" id="char-grid"></div>
+    </div>
+  </div>
+  <div class="fullscreen-profile" id="char-overlay">
+    <button class="char-close" onclick="Freidra.characters.close()">×</button>
+    <div class="profile-inner" id="char-profile-inner"></div>
+  </div>
+
+  <!-- ================= GALLERY ================= -->
+  <div class="view" id="view-gallery">
+    <div class="view-header">
+      <h1>Галерея</h1>
+      <button class="back-btn" data-back>← В фолиант</button>
+    </div>
+    <div class="view-body">
+      <div class="gallery-masonry" id="gallery-grid"></div>
+    </div>
+  </div>
+  <div class="lightbox" id="lightbox" onclick="if(event.target===this) Freidra.gallery.close()">
+    <button class="lightbox-close" onclick="Freidra.gallery.close()">×</button>
+    <button class="lightbox-nav prev" onclick="Freidra.gallery.prev(event)" aria-label="Предыдущее изображение">‹</button>
+    <div class="lightbox-inner">
+      <img id="lightbox-img" src="" alt="">
+      <div class="lightbox-caption" id="lightbox-caption"></div>
+    </div>
+    <button class="lightbox-nav next" onclick="Freidra.gallery.next(event)" aria-label="Следующее изображение">›</button>
+  </div>
+
+  <!-- ================= ENCYCLOPEDIA ================= -->
+  <div class="view" id="view-encyclopedia">
+    <div class="view-header">
+      <h1>Энциклопедия</h1>
+      <button class="back-btn" data-back>← В фолиант</button>
+    </div>
+    <div class="view-body">
+      <input type="text" id="encyc-search" class="encyc-search" placeholder="Поиск по энциклопедии...">
+      <div class="encyc-tabs" id="encyc-tabs"></div>
+      <div class="encyc-list" id="encyc-list"></div>
+      <div class="encyc-empty" id="encyc-empty" style="display:none;">Ничего не найдено.</div>
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS ================= -->
+  <div class="view" id="view-settings">
+    <div class="view-header">
+      <h1>Настройки</h1>
+      <button class="back-btn" data-back>← В фолиант</button>
+    </div>
+    <div class="view-body">
+      <div class="settings-panel">
+
+        <div class="settings-group">
+          <div class="settings-row">
+            <label for="opt-sound">Звук</label>
+            <input type="checkbox" id="opt-sound">
+          </div>
+          <div class="settings-row">
+            <label for="opt-volume">Громкость</label>
+            <input type="range" id="opt-volume" min="0" max="100" value="40">
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-row">
+            <label for="opt-snow">Снег</label>
+            <input type="checkbox" id="opt-snow" checked>
+          </div>
+          <div class="settings-row">
+            <label for="opt-fog">Туман</label>
+            <input type="checkbox" id="opt-fog" checked>
+          </div>
+          <div class="settings-row">
+            <label for="opt-animations">Анимации</label>
+            <input type="checkbox" id="opt-animations" checked>
+          </div>
+          <div class="settings-row">
+            <label for="opt-quality">Качество эффектов</label>
+            <select id="opt-quality">
+              <option value="high">Высокое</option>
+              <option value="medium">Среднее</option>
+              <option value="low">Низкое</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="settings-note">Настройки сохраняются в этом браузере автоматически.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/main.js"></script>
+<script src="js/reader.js"></script>
+<script src="js/world.js"></script>
+<script src="js/characters.js"></script>
+<script src="js/gallery.js"></script>
+<script src="js/encyclopedia.js"></script>
+</body>
+</html>

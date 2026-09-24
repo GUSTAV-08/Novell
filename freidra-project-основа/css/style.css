@@ -1,0 +1,811 @@
+:root{
+  --c-night:#03050a;
+  --c-night-2:#050811;
+  --c-moon:#b9dfff;
+  --c-magic:#8a6cff;
+  --c-gold:#d4af37;
+  --c-gold-light:#fffdeb;
+  --c-paper:#eedcb5;
+  --c-paper-ink:#2c1f10;
+  --c-paper-ink-soft:#443525;
+  --ease-soft:cubic-bezier(0.22,0.68,0.18,1);
+  --ease-lid:cubic-bezier(0.6,0.02,0.2,1);
+  --reader-font-size:18px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+html,body{ height:100%; }
+body {
+  background-color: var(--c-night);
+  overflow: hidden;
+  height: 100vh;
+  font-family: 'Cinzel', serif;
+  color: var(--c-gold-light);
+}
+.app{ position:relative; width:100vw; height:100vh; }
+button{ font-family:inherit; }
+::selection{ background: rgba(212,175,55,0.35); color:#fff; }
+
+
+/* ============================================================
+
+   LANDING SCENE — mountains.png остаётся единственным фоном
+
+   ============================================================ */
+
+
+
+.scene {
+
+  position: relative; width: 100vw; height: 100vh;
+
+  background-color: var(--c-night-2);
+
+  overflow: hidden; display: flex; align-items: center; justify-content: center;
+
+  perspective: 2200px;
+
+}
+
+
+
+.layer-mountains-img{
+
+  position:absolute; top:-4%; left:-4%; width:108%; height:108%; z-index:0; pointer-events:none;
+
+  object-fit: cover; object-position: center 30%;
+
+  transition: transform 0.25s var(--ease-soft);
+
+}
+
+@media (max-width: 768px) { .layer-mountains-img { object-position: 65% center; } }
+
+@media (max-aspect-ratio: 1/1) { .layer-mountains-img { object-position: center center; } }
+
+
+
+/* лёгкое затемнение для читаемости книги/меню — НЕ рисует горы, только
+
+   регулирует контраст поверх реального фото mountains.png */
+
+.mountains-scrim{
+  z-index:0; pointer-events:none;
+  background: linear-gradient(to top, rgba(2,3,6,0.35) 0%, rgba(5,7,14,0.15) 40%, rgba(12,18,36,0) 70%);
+}
+
+
+
+/* показывается только если mountains.png не найден по пути — чтобы отсутствие
+
+   файла было сразу заметно, а не выглядело как "процедурный фон" */
+
+.missing-asset-banner{
+
+  display:none; position:absolute; top:16px; left:50%; transform: translateX(-50%);
+
+  z-index:50; max-width:520px; text-align:center; padding:14px 22px; border-radius:8px;
+
+  background: rgba(120,20,20,0.85); border:1px solid rgba(255,120,120,0.4);
+
+  font-family:'EB Garamond', serif; font-size:13px; line-height:1.5; color:#ffe4e4;
+
+}
+
+.missing-asset-banner.show{ display:block; }
+
+
+
+.layer{ position:absolute; inset:0; }
+
+.aurora{
+  z-index:1; pointer-events:none; opacity:0.22;
+  background: linear-gradient(120deg, transparent 15%, rgba(120,255,210,0.10) 32%, rgba(140,190,255,0.08) 48%, transparent 68%);
+  mix-blend-mode: screen;
+  filter: blur(26px);
+  transform: translateY(-20%);
+}
+.far-haze{
+  z-index:1; pointer-events:none;
+  background: radial-gradient(ellipse at 50% 30%, rgba(200,225,255,0.05) 0%, transparent 55%);
+  mix-blend-mode: screen;
+}
+
+.fog-layer{
+  position:absolute; left:-10%; width:120%; height:38%; bottom:0; z-index:2;
+  pointer-events:none; opacity:0.18;
+  background: linear-gradient(to top, rgba(180,195,215,0.4) 0%, transparent 100%);
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  transition: transform 0.25s var(--ease-soft);
+}
+.fog-layer.front{
+  height:18%; opacity:0.12;
+  background: linear-gradient(to top, rgba(195,208,225,0.35) 0%, transparent 100%);
+  filter: blur(4px);
+}
+
+/* halo/ray НЕ рисуют луну — она уже на mountains.png.
+   Эти слои лишь усиливают её свечение через screen-blend,
+   точно совпадая по положению с луной на фото. */
+.moon-halo{
+  position:absolute; top:2%; right:11%; width:160px; height:160px; z-index:1; pointer-events:none;
+  border-radius:50%;
+  background: radial-gradient(circle, rgba(200,230,255,0.16) 0%, rgba(185,223,255,0.07) 45%, transparent 72%);
+  filter: blur(10px);
+  mix-blend-mode: screen;
+}
+.moon-ray{
+  position:absolute; top:0; right:6%; width:460px; height:100%; z-index:1; pointer-events:none;
+  background: linear-gradient(200deg, rgba(190,220,255,0.10), rgba(190,220,255,0.03) 45%, transparent 68%);
+  filter: blur(20px);
+  mix-blend-mode: screen;
+}
+
+.horizon-light{ position:absolute; left:0; right:0; bottom:26%; height:14%; z-index:1; pointer-events:none; background: linear-gradient(to top, rgba(138,108,255,0.07), transparent); }
+
+.ground-shadow{
+  z-index:2; pointer-events:none;
+  background: linear-gradient(to top,
+    rgba(1,2,4,0.95) 0%,
+    rgba(2,3,6,0.86) 8%,
+    rgba(3,4,8,0.74) 16%,
+    rgba(4,6,11,0.60) 25%,
+    rgba(5,7,13,0.46) 34%,
+    rgba(6,9,15,0.33) 44%,
+    rgba(8,11,17,0.21) 54%,
+    rgba(10,13,19,0.11) 65%,
+    rgba(12,15,22,0.04) 76%,
+    transparent 88%
+  );
+}
+
+.dragon-container { position:absolute; top:16%; left:-260px; width:200px; height:auto; pointer-events:none; z-index:1; filter: blur(1.5px); opacity:0; will-change: transform, opacity; }
+
+.dragon-svg{ width:100%; height:auto; display:block; }
+
+#snow-canvas { z-index:5; pointer-events:none; }
+/* ============================================================
+   КНИГА — древний фолиант: кожа, металл, объём страниц.
+   Структура: .book-pages (страницы, видны при открытии)
+              .page-block (торец страниц, видимый сбоку/снизу)
+              .book-spine (корешок)
+              .book-cover (верхняя крышка, откидывается по верхней кромке)
+   ============================================================ */
+
+.book-wrapper {
+  position: relative; z-index: 10;
+  transform-style: preserve-3d;
+  transform: rotateX(0deg) rotateY(0deg) scale(1);
+  transition: transform 0.6s var(--ease-soft), opacity 1s ease;
+  will-change: transform;
+}
+
+.book {
+  position: relative; width: 310px; height: 450px;
+  cursor: pointer;
+  transform-style: preserve-3d;
+}
+
+/* --- страницы, видимые когда крышка приподнята --- */
+.book-pages{
+  position:absolute; inset: 5px 10px 5px 5px; z-index:1; border-radius:4px 10px 10px 4px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.10), transparent 55%),
+    linear-gradient(160deg, #ded0a6 0%, #cdbb8c 55%, #b8a475 100%);
+  box-shadow: inset 0 0 30px rgba(90,70,30,0.35);
+  overflow:hidden;
+}
+.page-top-sheet{
+  position:absolute; inset:14px;
+  background: repeating-linear-gradient(to bottom, rgba(120,95,50,0.14) 0, rgba(120,95,50,0.14) 1px, transparent 1px, transparent 13px);
+  opacity:0.65;
+}
+.page-rune-glow{
+  position:absolute; inset:0;
+  background: radial-gradient(circle at 50% 45%, rgba(212,175,55,0.0) 0%, rgba(212,175,55,0.0) 100%);
+  transition: background 1.4s ease;
+  pointer-events:none;
+}
+.book.pre-open .page-rune-glow{
+  background: radial-gradient(circle at 50% 45%, rgba(212,175,55,0.35) 0%, rgba(212,175,55,0.05) 55%, transparent 75%);
+}
+
+/* --- торец страниц: неровный, пожелтевший, объёмный --- */
+.page-block{ position:absolute; z-index:2; pointer-events:none; }
+.page-block.right{
+  right:-3px; top:8px; width:14px; height:calc(100% - 16px);
+  background:#e3d3a4;
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(139,105,50,0.35) 3px);
+  border-radius:0 5px 5px 0;
+  box-shadow:
+    2px 0 0 -1px #d8c493,
+    4px 1px 0 -1px #cbb583,
+    6px 0 0 -1px #d8c493,
+    inset -4px 0 10px rgba(0,0,0,0.25);
+}
+.page-block.bottom{
+  left:6px; bottom:-3px; width:calc(100% - 20px); height:10px;
+  background:#e3d3a4;
+  background-image: repeating-linear-gradient(to right, transparent, transparent 2px, rgba(139,105,50,0.3) 3px);
+  border-radius:0 0 6px 4px;
+  box-shadow: 0 2px 0 -1px #d8c493, 0 4px 0 -1px #cbb583, inset 0 -4px 8px rgba(0,0,0,0.25);
+}
+
+/* --- корешок: объём переплёта --- */
+.book-spine{
+  position:absolute; left:0; top:0; width:46px; height:100%; z-index:3;
+  background: linear-gradient(to right, #0a0603, #241708 40%, #150d05 75%, #0a0603);
+  border-radius:6px 0 0 6px;
+  box-shadow: inset -6px 0 14px rgba(0,0,0,0.7), inset 3px 0 6px rgba(255,255,255,0.03);
+}
+.book-spine::before{
+  content:''; position:absolute; inset:10px 6px; border-top:1px solid rgba(212,175,55,0.15); border-bottom:1px solid rgba(212,175,55,0.15);
+}
+
+/* --- крышка: тёмная, почти чёрная кожа + потёртости; золото ТОЛЬКО как
+   акцент на уголках, застёжках и гравировке — не заливка всей обложки.
+   Открывается вокруг вертикальной оси у корешка (см. .opened-scene ниже
+   и @keyframes bookCoverOpen в animations.css), страницы неподвижны. --- */
+.book-cover{
+  position:absolute; inset:0; z-index:4; border-radius:6px 14px 14px 6px;
+  transform-origin: left center; /* петля у корешка */
+  transform: rotateY(0deg);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.9);
+  overflow:hidden;
+  
+  transition: transform 1.7s var(--ease-lid), box-shadow 1.7s var(--ease-lid);
+}
+/* внутренняя сторона крышки — появляется при открытии */
+.book-cover::before{
+  content:''; 
+  position:absolute; 
+  inset:0;
+  background:
+    linear-gradient(135deg, #e8dcc7 0%, #d9c9b3 50%, #c8b69d 100%);
+  box-shadow: inset 0 0 30px rgba(139,105,50,0.2);
+  transform: scaleX(-1);
+  opacity:0;
+  transition: opacity 1.7s var(--ease-lid);
+}
+
+.opened-scene .book-cover::before{
+  opacity:1;
+}
+.cover-leather{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse at 22% 24%, rgba(55,40,20,0.28), transparent 58%),
+    radial-gradient(ellipse at 78% 74%, rgba(0,0,0,0.6), transparent 55%),
+    repeating-linear-gradient(38deg, rgba(255,255,255,0.014) 0px, rgba(255,255,255,0.014) 1px, transparent 1.4px, transparent 3px),
+    repeating-linear-gradient(-52deg, rgba(0,0,0,0.07) 0px, rgba(0,0,0,0.07) 1px, transparent 1.4px, transparent 4px),
+    linear-gradient(135deg, #17100a 0%, #100b06 30%, #0b0704 60%, #060403 100%);
+}
+.cover-wear{
+  position:absolute; inset:0; mix-blend-mode:multiply; opacity:0.6;
+  background:
+    radial-gradient(circle at 12% 85%, rgba(0,0,0,0.55) 0%, transparent 22%),
+    radial-gradient(circle at 88% 15%, rgba(0,0,0,0.5) 0%, transparent 20%),
+    radial-gradient(circle at 65% 92%, rgba(0,0,0,0.4) 0%, transparent 16%),
+    radial-gradient(circle at 30% 8%, rgba(50,38,18,0.3) 0%, transparent 20%),
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,0.25) 0%, transparent 40%);
+}
+.cover-scratches{
+  position:absolute; inset:0; opacity:0.22; pointer-events:none;
+  background:
+    linear-gradient(78deg, transparent 46%, rgba(255,255,255,0.05) 47%, transparent 48%),
+    linear-gradient(112deg, transparent 63%, rgba(255,255,255,0.035) 64%, transparent 65%),
+    linear-gradient(96deg, transparent 20%, rgba(0,0,0,0.35) 21%, transparent 22%),
+    linear-gradient(150deg, transparent 33%, rgba(0,0,0,0.25) 34%, transparent 35%);
+}
+.cover-border{ position:absolute; inset:14px; border:1px solid rgba(180,145,70,0.28); border-radius:4px; pointer-events:none; }
+.cover-border::before{ content:''; position:absolute; inset:-1px; border:1px dashed rgba(180,145,70,0.16); pointer-events:none; }
+
+/* металлические уголки с заклёпками — единственный явный акцент золота */
+.cover-corner{ position:absolute; width:32px; height:32px; pointer-events:none; }
+.cover-corner::before{
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(135deg, #b3893f 0%, #7a5c25 42%, #40300f 78%, #211705 100%);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  opacity:0.9;
+}
+.cover-corner::after{
+  content:''; position:absolute; width:5px; height:5px; border-radius:50%; top:8px; left:8px;
+  background: radial-gradient(circle at 35% 30%, #f2debb, #a9803c 45%, #4d3a17 80%);
+  box-shadow: 0 0 3px rgba(0,0,0,0.7);
+}
+.cover-corner.tl{ top:6px; left:6px; }
+.cover-corner.tr{ top:6px; right:6px; transform: scaleX(-1); }
+.cover-corner.bl{ bottom:6px; left:6px; transform: scaleY(-1); }
+.cover-corner.br{ bottom:6px; right:6px; transform: scale(-1,-1); }
+
+/* свет из щели у корешка — появляется перед открытием, узкой полосой,
+   а не сплошной заливкой всей обложки */
+.cover-seam-glow{
+  position:absolute; top:0; left:0; bottom:0; width:16px; pointer-events:none; opacity:0;
+  background: linear-gradient(to right, rgba(212,175,55,0.55), transparent);
+  filter: blur(3px);
+  transition: opacity 0.8s ease;
+}
+.book.pre-open .cover-seam-glow{ opacity:1; }
+
+.cover-elements { position:relative; z-index:3; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:space-between; padding: 40px 25px; text-align:center; }
+.emblem-wrapper { width:76px; height:76px; filter: drop-shadow(0 0 8px rgba(180,145,70,0.3)); transition: transform 0.9s cubic-bezier(0.25,1,0.2,1), filter 0.6s ease; }
+.book-wrapper:hover .emblem-wrapper { transform: scale(1.08) rotate(340deg); }
+
+.title-group { margin-top:15px; }
+.book-title {
+  font-family:'Cinzel Decorative', serif; font-size:24px; font-weight:700; line-height:1.3; letter-spacing:1.5px;
+  color: #b6934a;
+  text-shadow: 0 1px 0 rgba(255,224,160,0.15), 0 3px 6px rgba(0,0,0,0.85);
+  text-transform:uppercase;
+}
+.divider-gold { display:flex; align-items:center; justify-content:center; width:140px; margin:18px auto; }
+.divider-line { width:100%; height:1px; background: linear-gradient(90deg, transparent, #8a6a30 50%, transparent); }
+.divider-node { color:#8a6a30; font-size:10px; margin:0 8px; text-shadow: 0 0 4px rgba(138,106,48,0.6); }
+.book-author { font-size:11px; font-weight:700; letter-spacing:5px; text-transform:uppercase; color:#7a6b52; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+.book-glow {
+  position:absolute; width:150%; height:150%;
+  background:
+    radial-gradient(circle at 28% 72%, rgba(160,50,20,0.14) 0%, transparent 52%),
+    radial-gradient(circle at 74% 26%, rgba(20,110,85,0.09) 0%, transparent 48%),
+    radial-gradient(circle at 50% 50%, rgba(180,140,60,0.20) 0%, transparent 68%);
+  top:-25%; left:-25%; z-index:9; pointer-events:none; opacity:0;
+  filter: blur(3px);
+  mix-blend-mode: screen;
+  transition: opacity 1s ease;
+}
+.book-wrapper:hover .book-glow { opacity:1; }
+
+/* тяжёлая ударная волна — не мягкое свечение, а резкий кольцевой
+   импульс с жёсткой окантовкой, будто разошёлся древний оттиск руны */
+.book-click-glow{
+  position:absolute; top:50%; left:50%; width:70px; height:70px; z-index:8; border-radius:50%;
+  transform: translate(-50%,-50%) scale(0.2); pointer-events:none; opacity:0;
+}
+.book-click-glow::before,
+.book-click-glow::after{
+  content:''; position:absolute; inset:0; border-radius:50%;
+}
+.book-click-glow::before{
+  border: 1.5px solid rgba(190,150,65,0.55);
+  box-shadow: 0 0 14px 1px rgba(190,150,65,0.2) inset;
+}
+.book-click-glow::after{
+  inset: 12px;
+  border: 1px solid rgba(90,55,20,0.4);
+}
+
+.book-dust{ position:absolute; inset:-30%; z-index:11; pointer-events:none; }
+.dust-mote{
+  position:absolute; width:2.5px; height:2.5px; border-radius:50%;
+  background: var(--c-gold-light); box-shadow:0 0 4px 1px rgba(212,175,55,0.6);
+  opacity:0;
+}
+
+.hint {
+  position:absolute; bottom:40px; left:50%; transform: translateX(-50%);
+  font-size:10px; font-weight:700; letter-spacing:3px; color: rgba(255,255,255,0.4);
+  text-transform:uppercase; z-index:15; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  transition: opacity 0.5s ease;
+}
+
+/* --- последовательность открытия --- */
+.opened-scene .book-cover{
+  transform: rotateY(-150deg);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+.opened-scene .book-wrapper{
+  transform: scale(0.82) translateY(6%);
+  opacity:0; pointer-events:none;
+  transition: transform 1.6s var(--ease-soft) 2.1s, opacity 1s ease 2.1s;
+}
+.opened-scene .hint { opacity:0; pointer-events:none; }
+
+.main-menu-interface {
+  position:absolute; width:850px; height:550px; max-width:94vw; max-height:88vh; z-index:5;
+  display:flex; opacity:0; transform: scale(0.85) translateZ(-160px);
+  transition: all 1.3s var(--ease-soft); pointer-events:none;
+  box-shadow: 0 50px 100px rgba(0,0,0,0.9); border-radius:4px;
+}
+.opened-scene .main-menu-interface { opacity:1; transform: scale(1) translateZ(0); pointer-events:auto; transition-delay: 2.3s; }
+
+.menu-page-light{
+  position:absolute; inset:0; z-index:1; pointer-events:none; border-radius:4px;
+  background: radial-gradient(ellipse at 50% -10%, rgba(255,246,214,0.18), transparent 55%);
+}
+.menu-spine-shadow{
+  position:absolute; left:50%; top:0; bottom:0; width:26px; margin-left:-13px; z-index:2; pointer-events:none;
+  background: linear-gradient(to right, transparent, rgba(0,0,0,0.28) 50%, transparent);
+}
+
+.menu-page {
+  flex:1; position:relative; z-index:0;
+  background-color: var(--c-paper);
+  background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 0);
+  background-size:24px 24px; padding:50px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  box-shadow: inset 0 0 46px rgba(139,105,50,0.32);
+}
+.page-left { border-radius:12px 0 0 12px; border-right:2px solid rgba(0,0,0,0.2); }
+.page-right { border-radius:0 12px 12px 0; border-left:2px solid rgba(255,255,255,0.4); }
+.menu-page::after { content:''; position:absolute; top:0; width:25px; height:100%; pointer-events:none; }
+.page-left::after { right:0; background: linear-gradient(to right, transparent, rgba(0,0,0,0.25)); }
+.page-right::after { left:0; background: linear-gradient(to left, transparent, rgba(0,0,0,0.25)); }
+
+.page-left h2 { font-family:'Cinzel Decorative', serif; color: var(--c-paper-ink); font-size:24px; border-bottom:1px solid rgba(139,105,50,0.4); padding-bottom:15px; text-align:center; }
+.novel-description { font-family:'EB Garamond', serif; font-size:16px; line-height:1.7; color: var(--c-paper-ink-soft); margin-top:30px; text-align:justify; }
+.novel-quote{ font-family:'EB Garamond', serif; font-style:italic; font-size:15px; color:#6c4fbf; margin-top:20px; text-align:center; }
+.menu-copyright{ text-align:center; color:#8b6932; font-size:12px; }
+.nav-menu-list { display:flex; flex-direction:column; gap:10px; list-style:none; margin-top:20px; }
+.nav-item {
+  display:flex; align-items:center; padding:11px 20px;
+  background: rgba(139,105,50,0.08); border:1px solid rgba(139,105,50,0.2); border-radius:6px;
+  cursor:pointer; font-family:'Cinzel', serif; font-weight:700; font-size:15px; color: var(--c-paper-ink);
+  transition: all 0.35s var(--ease-soft);
+}
+.nav-item span { margin-right:15px; font-size:19px; }
+.nav-item:hover { background: var(--c-paper-ink); color: var(--c-paper); transform: translateX(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+
+/* ============================================================
+   VIEW SHELL
+   ============================================================ */
+
+.view {
+  position:absolute; inset:0; z-index:20;
+  display:none; flex-direction:column;
+  background: radial-gradient(ellipse at 50% 0%, #0c1220 0%, var(--c-night) 70%);
+  opacity:0; transform: scale(0.97);
+  transition: opacity 0.6s var(--ease-soft), transform 0.6s var(--ease-soft);
+}
+.view.active { display:flex; opacity:1; transform: scale(1); }
+
+.view-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 22px 40px; border-bottom: 1px solid rgba(212,175,55,0.2);
+  flex-shrink:0; background: linear-gradient(to bottom, rgba(3,5,10,0.9), transparent);
+}
+.view-header h1 { font-family:'Cinzel Decorative', serif; font-size:20px; letter-spacing:2px; color: var(--c-gold); text-transform:uppercase; }
+.header-actions{ display:flex; align-items:center; gap:16px; }
+.page-indicator{ font-size:12px; color: rgba(255,255,255,0.45); letter-spacing:1px; }
+.back-btn {
+  display:flex; align-items:center; gap:8px; background:none; border:1px solid rgba(212,175,55,0.35);
+  color: var(--c-gold-light); padding:9px 18px; border-radius:20px; cursor:pointer;
+  font-family:'Cinzel', serif; font-size:13px; letter-spacing:1px; text-transform:uppercase;
+  transition: all 0.3s var(--ease-soft);
+}
+.back-btn:hover { background: rgba(212,175,55,0.15); border-color: var(--c-gold); transform: translateX(-3px); }
+
+.view-body { flex:1; overflow:auto; padding: 30px 40px 50px; }
+.view-body::-webkit-scrollbar { width:8px; }
+.view-body::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.35); border-radius:4px; }
+.view-body::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+
+/* ============================================================
+   READER — оглавление, затем чтение
+   ============================================================ */
+
+.reader-toc{ max-width:640px; margin:0 auto; }
+.toc-volume-title{ font-family:'Cinzel Decorative', serif; font-size:22px; color: var(--c-gold); text-align:center; margin-bottom:26px; letter-spacing:1px; }
+.toc-list{ display:flex; flex-direction:column; gap:10px; }
+.toc-item{
+  padding:18px 26px; border:1px solid rgba(212,175,55,0.2); border-radius:8px; cursor:pointer;
+  font-family:'Cinzel', serif; font-size:16px; color: var(--c-gold-light);
+  background: rgba(255,255,255,0.02); transition: all 0.3s var(--ease-soft);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.toc-item:hover{ background: rgba(212,175,55,0.08); border-color: rgba(212,175,55,0.4); transform: translateX(6px); }
+.toc-item .toc-arrow{ color: var(--c-gold); opacity:0.7; }
+
+.reader-layout { display:flex; gap:30px; max-width:1100px; margin:0 auto; height:100%; }
+.reader-sidebar{ width:230px; flex-shrink:0; }
+.chapter-nav { display:flex; flex-direction:column; gap:6px; margin-top:14px; }
+.chapter-nav-item { padding:12px 16px; border-radius:8px; cursor:pointer; font-size:14px; color: rgba(255,255,255,0.55); border:1px solid transparent; transition: all 0.25s var(--ease-soft); }
+.chapter-nav-item:hover { color: var(--c-gold-light); border-color: rgba(212,175,55,0.2); }
+.chapter-nav-item.active { color: var(--c-gold); background: rgba(212,175,55,0.08); border-color: rgba(212,175,55,0.3); }
+
+
+.reader-settings-panel{ display:flex; flex-direction:column; gap:26px; margin-top:4px; }
+.settings-block-label{
+  font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+  color: rgba(255,255,255,0.4); margin-bottom:10px;
+}
+
+.reader-controls { display:flex; align-items:center; gap:10px; }
+.reader-controls button { width:32px; height:32px; border-radius:50%; border:1px solid rgba(212,175,55,0.3); background:none; color: var(--c-gold-light); cursor:pointer; font-size:13px; flex-shrink:0; transition: background 0.25s var(--ease-soft); }
+.reader-controls button:hover { background: rgba(212,175,55,0.15); }
+.font-size-value{ font-size:12px; color: rgba(255,255,255,0.5); min-width:38px; text-align:center; }
+
+.font-family-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; }
+.font-choice{
+  padding:12px 8px; border-radius:8px; border:1px solid rgba(212,175,55,0.2); background: rgba(255,255,255,0.02);
+  color: var(--c-gold-light); font-size:19px; cursor:pointer; transition: all 0.25s var(--ease-soft);
+}
+.font-choice:hover{ border-color: rgba(212,175,55,0.4); background: rgba(212,175,55,0.08); }
+.font-choice.active{ background: var(--c-gold); color:#1a1204; border-color: var(--c-gold); }
+
+.line-height-grid{ display:flex; flex-direction:column; gap:6px; }
+.lh-choice{
+  padding:9px 14px; border-radius:8px; border:1px solid rgba(212,175,55,0.2); background: rgba(255,255,255,0.02);
+  color: rgba(255,255,255,0.65); font-family:'Cinzel', serif; font-size:12px; letter-spacing:0.5px; cursor:pointer;
+  text-align:left; transition: all 0.25s var(--ease-soft);
+}
+.lh-choice:hover{ border-color: rgba(212,175,55,0.4); color: var(--c-gold-light); }
+.lh-choice.active{ background: rgba(212,175,55,0.15); border-color: var(--c-gold); color: var(--c-gold); }
+
+.paper-stage{ flex:1; display:flex; align-items:center; gap:14px; }
+.page-arrow{ flex-shrink:0; width:38px; height:38px; border-radius:50%; border:1px solid rgba(212,175,55,0.3); background:none; color: var(--c-gold-light); cursor:pointer; font-size:18px; transition: background 0.25s var(--ease-soft); }
+.page-arrow:hover{ background: rgba(212,175,55,0.15); }
+
+.paper-sheet {
+  flex:1; background: var(--c-paper);
+  background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 0);
+  background-size:22px 22px;
+  border-radius:6px; box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 40px rgba(139,105,50,0.15);
+  padding:50px 60px; overflow-y:auto; max-height: calc(100vh - 230px);
+  transform-style: preserve-3d; transform-origin: left center;
+}
+.paper-sheet h2 { font-family:'Cinzel Decorative', serif; color: var(--c-paper-ink); font-size:26px; margin-bottom:22px; }
+.paper-sheet p { font-family:'EB Garamond', serif; color: var(--c-paper-ink-soft); line-height:1.85; margin-bottom:16px; text-align:justify; font-size: var(--reader-font-size); }
+.paper-sheet.font-sans p { font-family: 'Comfortaa', sans-serif; }
+.paper-sheet.font-sans p { font-family: 'Comfortaa', sans-serif; }
+.paper-sheet.font-bold p { font-family: 'Merriweather', serif; font-weight: 700; }
+.paper-sheet.font-medieval p { font-family: 'MedievalSharp', cursive; font-size: calc(var(--reader-font-size) + 1px); }
+
+.paper-sheet.lh-compact p { line-height: 1.5; }
+.paper-sheet.lh-normal p { line-height: 1.85; }
+.paper-sheet.lh-relaxed p { line-height: 2.25; }
+.chapter-art-wrap {
+  text-align: center;
+  margin: 25px 0;
+}
+
+.chapter-art-wrap img,
+img.chapter-art {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px; /* Скругление углов (по желанию) */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Легкая тень */
+}
+/* ============================================================
+   WORLD MAP — встроенная карта Azgaar (iframe), без своей отрисовки
+   ============================================================ */
+
+.map-wrap { max-width:1100px; margin:0 auto; height:100%; }
+.map-frame {
+  position:relative; width:100%; height: calc(100vh - 160px); border:1px solid rgba(212,175,55,0.25); border-radius:8px; overflow:hidden;
+  background: radial-gradient(ellipse at 50% 30%, #10182c, #030509 75%);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.6);
+}
+.azgaar-frame{ width:100%; height:100%; border:0; display:block; }
+.map-missing{
+  position:absolute; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column;
+  text-align:center; padding:40px; font-family:'Cinzel', serif; color: rgba(255,255,255,0.6); gap:10px;
+}
+.map-missing span{ font-family:'EB Garamond', serif; font-size:14px; color: rgba(255,255,255,0.4); max-width:420px; }
+.map-frame.missing .azgaar-frame{ display:none; }
+.map-frame.missing .map-missing{ display:flex; }
+.map-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 0 20px;
+}
+.map-next-btn {
+  background: rgba(16, 24, 44, 0.6);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #c9ad6e;
+  padding: 8px 18px;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.map-next-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.8);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+}
+.map-layer-name {
+  font-family: 'EB Garamond', serif;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+  min-width: 180px; /* Чтобы текст при смене не двигал соседние элементы */
+}
+
+/* ============================================================
+   CHARACTERS
+   ============================================================ */
+
+.char-grid { max-width:1100px; margin:0 auto; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:24px; }
+.char-card {
+  background: linear-gradient(160deg, #0d1120, #060811);
+  border:1px solid rgba(212,175,55,0.18); border-radius:10px; overflow:hidden; cursor:pointer;
+  transition: transform 0.4s var(--ease-soft), border-color 0.4s ease; text-align:left;
+}
+.char-card:hover { transform: translateY(-6px); border-color: rgba(212,175,55,0.5); }
+.char-portrait { height:180px; display:flex; align-items:center; justify-content:center; overflow:hidden;
+  font-family:'Cinzel Decorative', serif; font-size:42px; color: rgba(212,175,55,0.5);
+  background: radial-gradient(circle at 50% 30%, rgba(138,108,255,0.18), transparent 70%), #0a0d18; }
+.char-portrait img{ width:100%; height:100%; object-fit:cover; }
+.char-info { padding:16px 18px 20px; }
+.char-name { font-family:'Cinzel', serif; font-weight:700; color: var(--c-gold-light); font-size:16px; }
+.char-role { font-size:12px; color: var(--c-magic); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+.char-teaser { font-family:'EB Garamond', serif; font-size:14px; color: rgba(255,255,255,0.55); margin-top:10px; line-height:1.5; }
+
+.fullscreen-profile { position:fixed; inset:0; z-index:30; background: linear-gradient(160deg,#0c1120,#03050a); display:none; padding:60px 12vw; overflow-y:auto; }
+.fullscreen-profile.active{ display:block; }
+.profile-inner{ max-width:760px; margin:0 auto; }
+.profile-header{ display:flex; gap:26px; align-items:center; margin-bottom:30px; }
+
+/* 1. ИСПРАВЛЕНИЕ: Главный портрет внутри открытой карточки */
+.profile-portrait{ 
+  width: 40px;          /* Уменьшили размер главного фото (было слишком огромным) */
+  height: 40px; 
+  border-radius: 50%; 
+  overflow: hidden; 
+  flex-shrink: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(138,108,255,0.25), transparent 70%), #0a0d18;
+  display: flex; align-items: center; justify-content: center; 
+  font-family: 'Cinzel Decorative', serif; font-size: 44px; color: rgba(212,175,55,0.6); 
+  border: 2px solid rgba(212,175,55,0.35); 
+}
+.profile-portrait img{ width:100%; height:100%; object-fit:cover; }
+.profile-header h2{ font-family:'Cinzel Decorative', serif; font-size:30px; color: var(--c-gold-light); }
+.profile-header .char-role{ margin-top:6px; }
+.profile-stats{ display:grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap:16px; margin-bottom:28px; }
+.profile-stat{ background: rgba(255,255,255,0.03); border:1px solid rgba(212,175,55,0.15); border-radius:8px; padding:14px 16px; }
+.profile-stat .field-label{ font-size:11px; text-transform:uppercase; letter-spacing:1px; color: var(--c-magic); margin-bottom:4px; }
+.profile-stat .field-value{ font-family:'EB Garamond', serif; color: var(--c-gold-light); font-size:15px; }
+.profile-section{ margin-bottom:20px; }
+.profile-section .field-label{ font-size:11px; text-transform:uppercase; letter-spacing:1px; color: var(--c-magic); margin-bottom:6px; }
+.profile-inner p.bio, .profile-section p{ font-family:'EB Garamond', serif; color: rgba(255,255,255,0.78); line-height:1.8; font-size:16px; }
+.char-close { position:absolute; top:24px; right:30px; background:none; border:1px solid rgba(212,175,55,0.3); border-radius:50%; width:36px; height:36px; font-size:20px; color: var(--c-gold-light); cursor:pointer; }
+
+/* 2. ДОБАВЛЕНИЕ: Компактные стили для раздела связанных персонажей (relations), генерируемого из JS */
+.char-relations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Мелкая аккуратная сетка */
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.relation-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.relation-card:hover {
+  background: rgba(138, 108, 255, 0.05);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.relation-avatar {
+  width: 42px;          /* Крошечный компактный аватар */
+  height: 42px;
+  border-radius: 4px;   /* Закругленный квадрат экономит место */
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  background: #0a0d18;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.relation-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.relation-avatar .placeholder-portrait {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  color: var(--c-gold-light);
+}
+
+.relation-info {
+  overflow: hidden;     /* Защита от вылезания длинных имен */
+}
+
+.relation-name {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--c-gold-light);
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.relation-desc {
+  font-family: 'EB Garamond', serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   GALLERY
+   ============================================================ */
+
+.gallery-masonry{ max-width:1100px; margin:0 auto; column-count:3; column-gap:18px; }
+.gallery-item {
+  break-inside: avoid; margin-bottom:18px; border-radius:8px; overflow:hidden; cursor:pointer; position:relative;
+  border:1px solid rgba(212,175,55,0.15); transition: transform 0.5s var(--ease-soft), opacity 0.7s var(--ease-soft);
+  opacity:0; transform: translateY(18px) scale(0.98);
+}
+.gallery-item.shown{ opacity:1; transform: translateY(0) scale(1); }
+.gallery-item:hover { transform: scale(1.02); }
+.gallery-item img { width:100%; display:block; }
+.gallery-placeholder {
+  width:100%; min-height:160px; display:flex; align-items:center; justify-content:center;
+  font-family:'Cinzel', serif; font-size:13px; color: rgba(255,255,255,0.35); text-align:center; padding:20px;
+  background: linear-gradient(135deg, #0d1120, #050710);
+}
+.gallery-caption { position:absolute; left:0; right:0; bottom:0; padding:10px 14px; font-size:12px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: var(--c-gold-light); }
+
+.lightbox { position:fixed; inset:0; z-index:30; background: rgba(2,3,6,0.92); display:none; align-items:center; justify-content:center; padding:40px; }
+.lightbox.active { display:flex; }
+.lightbox-inner { max-width:900px; max-height:85vh; text-align:center; }
+.lightbox-inner img { max-width:100%; max-height:75vh; border-radius:6px; }
+.lightbox-caption { margin-top:14px; color: var(--c-gold-light); font-family:'EB Garamond', serif; font-style:italic; }
+.lightbox-close { position:absolute; top:24px; right:34px; background:none; border:none; font-size:28px; color: var(--c-gold-light); cursor:pointer; }
+.lightbox-nav{ position:absolute; top:50%; transform: translateY(-50%); background: rgba(255,255,255,0.05); border:1px solid rgba(212,175,55,0.3); color: var(--c-gold-light); font-size:26px; width:48px; height:48px; border-radius:50%; cursor:pointer; transition: background 0.25s var(--ease-soft); }
+.lightbox-nav:hover{ background: rgba(212,175,55,0.2); }
+.lightbox-nav.prev{ left:24px; }
+.lightbox-nav.next{ right:24px; }
+
+/* ============================================================
+   ENCYCLOPEDIA
+   ============================================================ */
+
+.encyc-search{
+  display:block; max-width:500px; margin:0 auto 20px; width:100%;
+  padding:12px 18px; border-radius:20px; border:1px solid rgba(212,175,55,0.3);
+  background: rgba(255,255,255,0.03); color: var(--c-gold-light); font-family:'EB Garamond', serif; font-size:15px;
+}
+.encyc-search::placeholder{ color: rgba(255,255,255,0.35); }
+.encyc-tabs { display:flex; gap:10px; max-width:1000px; margin:0 auto 26px; flex-wrap:wrap; justify-content:center; }
+.encyc-tab { padding:10px 22px; border-radius:20px; border:1px solid rgba(212,175,55,0.3); background:none; color: rgba(255,255,255,0.6); cursor:pointer; font-family:'Cinzel', serif; font-size:13px; letter-spacing:1px; text-transform:uppercase; transition: all 0.3s var(--ease-soft); }
+.encyc-tab:hover { color: var(--c-gold-light); }
+.encyc-tab.active { background: var(--c-gold); color:#1a1204; border-color: var(--c-gold); }
+.encyc-list { max-width:800px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
+.encyc-entry { border:1px solid rgba(212,175,55,0.18); border-radius:8px; overflow:hidden; }
+.encyc-entry-head { padding:16px 20px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.02); font-family:'Cinzel', serif; color: var(--c-gold-light); font-size:15px; }
+.encyc-entry-head:hover { background: rgba(212,175,55,0.06); }
+.encyc-entry-head .arrow { transition: transform 0.3s var(--ease-soft); color: var(--c-gold); }
+.encyc-entry.open .arrow { transform: rotate(90deg); }
+.encyc-entry-body { max-height:0; overflow:hidden; transition: max-height 0.45s var(--ease-soft); font-family:'EB Garamond', serif; color: rgba(255,255,255,0.7); line-height:1.7; font-size:15px; }
+.encyc-entry.open .encyc-entry-body { max-height: 400px; }
+.encyc-entry-body-inner { padding: 0 20px 18px; }
+.encyc-empty{ text-align:center; color: rgba(255,255,255,0.4); font-family:'EB Garamond', serif; margin-top:30px; }
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+
+.settings-panel{ max-width:520px; margin:0 auto; display:flex; flex-direction:column; gap:26px; }
+.settings-group{ background: rgba(255,255,255,0.03); border:1px solid rgba(212,175,55,0.15); border-radius:10px; padding:8px 22px; }
+.settings-row{ display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:14px; }
+.settings-row:last-child{ border-bottom:none; }
+.settings-row label{ color: rgba(255,255,255,0.8); }
+.settings-row input[type="checkbox"]{ width:18px; height:18px; accent-color: var(--c-gold); }
+.settings-row input[type="range"]{ accent-color: var(--c-gold); width:140px; }
+.settings-row select{ background: var(--c-night-2); color: var(--c-gold-light); border:1px solid rgba(212,175,55,0.3); border-radius:6px; padding:6px 10px; }
+.settings-note{ text-align:center; font-size:12px; color: rgba(255,255,255,0.4); }

@@ -6,7 +6,7 @@ window.Freidra = window.Freidra || {};
 (function () {
 
   const VOLUME_TITLE = 'Том I';
-  const BOOK_FILE = 'Book.txt'; // Ваш единый файл со всеми 40 главами
+  const BOOK_FILE = 'book.txt'; // Ваш единый файл со всеми 40 главами
 
   // Массив заполняется автоматически из book.txt
   let CHAPTERS = [];
